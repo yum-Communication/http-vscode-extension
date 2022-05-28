@@ -1,0 +1,86 @@
+{
+  "name": "http-client-ext",
+  "displayName": "HTTP Client",
+  "description": "HTTPリクエスト送信",
+  "version": "0.1.0",
+  "publisher": "yumCommunication",
+  "license": "Apache-2.0",
+  "icon": "logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yum-Communication/http-vscode-extension.git"
+  },
+  "engines": {
+    "vscode": "^1.67.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:httprequest"
+  ],
+  "main": "./dist/main",
+  "contributes": {
+    "menus": {
+      "editor/context": [
+        {
+          "command": "HttpClient.sendRequest",
+          "group": "HttpClient",
+          "when": "editorLangId == httprequest"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "HttpClient.sendRequest",
+        "title": "%HttpClient_sendRequest_title%",
+        "shortTitle": "send HTTP request",
+        "category": "http"
+      }
+    ],
+    "languages": [
+      {
+        "id": "httprequest",
+        "aliases": [
+          "HTTP request"
+        ],
+        "extensions": [
+          ".http"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "httprequest",
+        "scopeName": "http.request",
+        "path": "./syntaxes/http.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run -S esbuild-base -- --minify",
+    "lint": "eslint . --ext .ts,.tsx",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run -S esbuild-base",
+    "esbuild-watch": "npm run -S esbuild-base -- --watch"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "14.x",
+    "@types/vscode": "^1.67.0",
+    "@typescript-eslint/eslint-plugin": "^5.21.0",
+    "@typescript-eslint/parser": "^5.21.0",
+    "@vscode/test-electron": "^2.1.3",
+    "esbuild": "^0.14.39",
+    "eslint": "^8.14.0",
+    "glob": "^8.0.1",
+    "mocha": "^9.2.2",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "axios": "^0.27.2"
+  }
+}

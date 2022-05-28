@@ -1,0 +1,10 @@
+
+*.vsix
+node_modules
+*.pdf
+out
+dist
+.vscode-test/
+**/publish/**
+**/tsconfig.tsbuildinfo
+package-lock.json

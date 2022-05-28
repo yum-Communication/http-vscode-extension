@@ -1,0 +1,11 @@
+{
+    "comments": {
+        "lineComment": "#",
+    },
+    "folding": {
+        "markers": {
+            "start": "^(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s*(\\s#.+)?",
+            "end": "^----+$"
+        }
+    }
+}

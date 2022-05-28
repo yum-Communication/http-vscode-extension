@@ -1,0 +1,72 @@
+{
+    "scopeName": "http.request" ,
+    "name": "http.request",
+    "patterns": [
+        {"include": "#requestMethod"},
+        {"include": "#url"},
+        {"include": "#param"},
+        {"include": "#headerValue"},
+        {"include": "#files"},
+        {"include": "#querySeparator"}
+    ],
+    "repository": {
+        "requestMethod": {
+            "match": "^(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)(\\s+#.+)?",
+            "captures": {
+                "1": {"name": "http.request.method"},
+                "2": {"name": "comment.line.http"}
+            }
+        },
+        "url": {
+            "name": "http.request.url",
+            "match": "^\\s+https?://[a-z][-0-9a-z]+(\\.[a-z][-0-9a-z]+)*(:[1-9][0-9]*)?(/[-%.0-9A-Z_a-z]+)*$"
+        },
+        "param": {
+            "name": "http.query.param",
+            "match": "^\\s+([A-Z_a-z][-0-9A-Z_a-z]*)\\s*=\\s*(.+)$",
+            "captures": {
+                "1": {"name": "http.key.query.param"},
+                "2": {"name": "http.value.query.param"}
+            }
+        },
+        "headerValue": {
+            "name": "http.header.request",
+            "match": "^([A-Z_a-z][-0-9A-Z_a-z]*)\\s*:\\s*(.+)$",
+            "captures": {
+                "1": {"name": "http.key.header.request"},
+                "2": {"name": "http.value.header.request"}
+            }
+        },
+        "querySeparator": {
+            "name": "http.request.sepa",
+            "match": "^----+$"
+        },
+        "files": {
+            "name": "http.request.files",
+            "match": "^(\\$[a-z]+)\\(\"[^\"]*\"\\)",
+            "captures": {
+                "1": {
+                    "patterns": [
+                        {"include": "#fileBody"},
+                        {"include": "#fileHeader"},
+                        {"include": "#fileResponse"}
+                    ],
+                    "repository": {
+                        "fileBody": {
+                            "name": "http.include.body",
+                            "match": "\\$body"
+                        },
+                        "fileHeader": {
+                            "name": "http.include.header",
+                            "match": "\\header"
+                        },
+                        "fileResponse": {
+                            "name": "http.output.response",
+                            "match": "\\$response"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
