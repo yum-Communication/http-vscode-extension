@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosRequestHeaders, AxiosResponseHeaders  } from "axios";
+import axios, { AxiosProxyConfig, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponseHeaders  } from "axios";
 
 export interface HttpParameters {
     [k:string]: string;    
@@ -10,6 +10,12 @@ export interface RequestConfig {
     queries?: HttpParameters;
     headers?: AxiosRequestHeaders;
     body?: string;
+
+    proxyHost?: string;
+    proxyPort?: number;
+    proxyUser?: string;
+    proxyPass?: string;
+    proxyProtocol?: string;
 }
 
 export interface Response {
@@ -35,10 +41,39 @@ export const query = (config:RequestConfig): Promise<Response> =>{
             headers: config.headers,
             responseType : 'arraybuffer'
         };
+
         if(options.url === undefined || options.url === '') {
             reject("missing URL");
         }
-    
+
+        // Proxyが有効
+        if(config.proxyHost) {
+            // ポートの指定は必須なのでが無い場合は作る
+            if(!config.proxyPort) {
+                if(config.proxyProtocol === 'https') {
+                    config.proxyPort = 443;
+                } else {
+                    config.proxyPort = 80;
+                }
+            }
+
+            const proxyConfig:AxiosProxyConfig = {
+                host: config.proxyHost,
+                port: config.proxyPort
+            };
+
+            if(config.proxyUser) {
+                proxyConfig.auth = {
+                    username: config.proxyUser,
+                    password: config.proxyPass||""
+                };
+            }
+            if(config.proxyProtocol) {
+                proxyConfig.protocol = config.proxyProtocol;
+            }
+            options.proxy = proxyConfig;
+        }
+
         axios(options)
             .then((response)=>{
                 res.status = response.status;

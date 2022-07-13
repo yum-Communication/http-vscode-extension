@@ -46,7 +46,7 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 		const rgxUrl = /^https?:\/\/[a-z][-0-9a-z]+(\.[a-z][-0-9a-z]+)*(:[1-9][0-9]*)?(\/[-%.0-9A-Z_a-z]+)*/;
 		const rgxParam = /^\s+([A-Z_a-z][-0-9A-Z_a-z]*)\s*=\s*(.+)\s*$/;
 		const rgxHeader = /^([A-Z_a-z][-0-9A-Z_a-z]*)\s*:\s*(.+)\s*$/;
-		const rgxFiles = /^\$(body|header|response)\("([^"]+)"\)$/;
+		const rgxFiles = /^\$(body|header|response|proxy)\("([^"]+)"\)$/;
 		const rgxSepa = /^----+/;
 
 		const conf:RequestConfig = {
@@ -60,6 +60,7 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 		let headerFile:string = "";
 		let bodyFile:string = "";
 		let responseFile:string = "";
+		let proxy:string = "";
 
 		let hasParams = false;
 		let mode = 0;
@@ -91,7 +92,6 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 						reject("Line(" + (lineIdx + 1) + "): Bad URL: " + t);
 					}
 				} else {
-					m = rgxFiles.exec(t);
 					// ヘッダ
 					if(t.length === 0) {
 						// 空行の場合、ヘッダの終了を意味する
@@ -128,7 +128,13 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 									return -1;
 								}
 								responseFile = m[2];
-						}
+							case 'proxy':
+								if(proxy !== '') {
+									reject("Line(" + (lineIdx + 1) + "): Proxy is already specified.");
+									return -1;
+								}
+								proxy = m[2];
+							}
 					} else {
 						reject("Line(" + (lineIdx + 1) + "): Unknown line is detected...: " + t);
 						return -1;
@@ -171,6 +177,10 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 			if(body !== undefined && body !== '') {
 				conf.body = body;
 			}
+
+			return readProxy(conf, baseDir, proxy);
+		}).then(()=>{
+
 			return query(conf);
 		}).then((res:Response)=>{
 
@@ -212,7 +222,10 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 						resolve(lineIdx);
 					});
 				});
+		}).catch((reason)=>{
+			window.showErrorMessage(reason.message);
 		});
+
 	});
 }
 
@@ -243,7 +256,7 @@ const readHeader = (headers: AxiosRequestHeaders, baseDir:string, filename:strin
 	});
 };
 
-const readBody = (baseDir:string, filename:string) :Promise<string|undefined> => {
+const readBody = (baseDir:string, filename:string):Promise<string|undefined> => {
 	return new Promise((resolve, reject)=>{
 		const fn = path.isAbsolute(filename) ? filename : baseDir + '/' + filename;
 		if(filename !== '') {
@@ -256,6 +269,51 @@ const readBody = (baseDir:string, filename:string) :Promise<string|undefined> =>
 			});
 		} else {
 			resolve(undefined);
+		}
+	});
+};
+
+const readProxy = (conf:RequestConfig, baseDir:string, filename:string) :Promise<void> => {
+	return new Promise((resolve, reject)=>{
+
+		if(filename !== '') {
+			const fn = path.isAbsolute(filename) ? filename : baseDir + '/' + filename;
+			fs.readFile(fn, 'utf-8')
+			.then((content:string) => {
+				const lines:string[] = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+				lines.forEach(line=>{
+					if(line.length > 0) {
+						const kv:string[] = line.split(':');
+						if(kv.length > 1) {
+							const x:string = kv[0].trim().toLowerCase();
+							switch(x)
+							{
+								case 'host':
+									conf.proxyHost = kv[1].trim();
+									break;
+								case 'port':
+									conf.proxyPort = Number(kv[1].trim());
+									break;
+								case 'user':
+									conf.proxyUser = kv[1].trim();
+									break;
+								case 'pass':
+									conf.proxyPass = kv[1].trim();
+									break;
+								case 'protocol':
+									conf.proxyProtocol = kv[1].trim();
+									break;
+							}
+						}
+					}
+				});
+				resolve();
+			})
+			.catch((reason)=>{
+				reject(reason);
+			});
+		} else {
+			resolve();
 		}
 	});
 };
