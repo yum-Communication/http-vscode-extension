@@ -2,7 +2,7 @@
   "name": "http-client-ext",
   "displayName": "HTTP Client",
   "description": "HTTPリクエスト送信",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "yumCommunication",
   "license": "Apache-2.0",
   "icon": "logo.png",

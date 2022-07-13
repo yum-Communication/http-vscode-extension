@@ -43,7 +43,7 @@ export function deactivate() {}
 function sendOne(doc:TextDocument, line:number):Promise<number> {
 	return new Promise((resolve, reject)=>{
 		const rgxMethod = /^(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)/;
-		const rgxUrl = /^https?:\/\/[a-z][-0-9a-z]+(\.[a-z][-0-9a-z]+)*(:[1-9][0-9]*)?(\/[-%.0-9A-Z_a-z]+)*/;
+		const rgxUrl = /^https?:\/\/[0-9a-z][-0-9a-z]*(\.[0-9a-z][-0-9a-z]*)*(:[1-9][0-9]*)?(\/[^\/]*)*$/;
 		const rgxParam = /^\s+([A-Z_a-z][-0-9A-Z_a-z]*)\s*=\s*(.+)\s*$/;
 		const rgxHeader = /^([A-Z_a-z][-0-9A-Z_a-z]*)\s*:\s*(.+)\s*$/;
 		const rgxFiles = /^\$(body|header|response|proxy)\("([^"]+)"\)$/;
@@ -78,9 +78,8 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 					}
 				} else if(conf.url === '') {
 					let url = t.replace(/^\s+/, '');
-					let m:RegExpExecArray|null = rgxUrl.exec(url);
+					m = rgxUrl.exec(url);
 					if(m !== null) {
-						conf.url = url;
 						const px = url.indexOf('?');
 						if(px === url.length) {
 							// 末尾がクエスチョンマークならば切り落とす
@@ -88,8 +87,10 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 						} else if(px > 0) {
 							hasParams = true;
 						}
+						conf.url = url;
 					} else {
 						reject("Line(" + (lineIdx + 1) + "): Bad URL: " + t);
+						break;
 					}
 				} else {
 					// ヘッダ
@@ -158,6 +159,10 @@ function sendOne(doc:TextDocument, line:number):Promise<number> {
 				}
 			}
 			++lineIdx;
+		}
+
+		if(body) {
+			conf.body = body;
 		}
 
 		const baseDir:string = path.dirname(doc.uri.fsPath);

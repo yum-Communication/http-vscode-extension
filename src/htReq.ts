@@ -46,6 +46,8 @@ export const query = (config:RequestConfig): Promise<Response> =>{
             reject("missing URL");
         }
 
+        options.data = config.body;
+
         // Proxyが有効
         if(config.proxyHost) {
             // ポートの指定は必須なのでが無い場合は作る
@@ -103,7 +105,7 @@ export const query = (config:RequestConfig): Promise<Response> =>{
 
 const makeUrl = (conf:RequestConfig): string => {
     let url = conf.url;
-    const rgx:RegExp = /^(https?):\/\/([a-z][-0-9a-z]+(\.[a-z][-0-9a-z]+)*)(:[1-9][0-9]*)?/;
+    const rgx:RegExp = /^(https?):\/\/([0-9a-z][-0-9a-z]*(\.[0-9a-z][-0-9a-z]*)*)(:[1-9][0-9]*)?/;
     const m:RegExpExecArray|null = rgx.exec(conf.url);
     if (m !== null) {
         if (m[0].length === url.length) {
